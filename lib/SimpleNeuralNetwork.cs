@@ -1,29 +1,51 @@
 
 using System;
+using System.Collections.Generic;
+using common.nn;
 
 namespace nn.common
 {
     public class SimpleNeuralNetwork
     {
-        public int noInputs;
-        public int noHidden;
-        public int noOutput;
+        public float[,] inputdata;
+        public int noInputs=0;
+
+        public List<SimpleNeuralLayer> layers;
 
         // this is necesary cuz we want to initialize this class also with the method load
-        public SimpleNeuralNetwork(){
-            // empty
+        public SimpleNeuralNetwork(int _noInputs){
+            layers = new List<SimpleNeuralLayer>();
+            this.noInputs = _noInputs;
+            this.inputdata = new float[1,_noInputs];
         }
 
-        // var snn = new NeuralNetwork(2,4,2);
-        public SimpleNeuralNetwork(int _noInputs, int _noHidden, int _noOutputs){
-            noInputs = _noInputs;
-            noHidden = _noHidden;
-            noOutput = _noOutputs;
+        // Adds a layer
+        public void add(SimpleNeuralLayer layer){
+            if(layer!=null)
+                layers.Add(layer);
         }
 
-        public void train(float[,] inputs, float[,] outputs){ // inputs and outputs are matrixes of 1xN
-            // --> FeedFordward
-            // <-- BackPropagation (LinearRegresion)
+
+        public void train(float[] inputs){ // inputs and outputs are matrixes of 1xN
+            if(inputs!=null && inputs.GetLength(0) == this.noInputs){
+                
+                // --> FeedFordward
+                Matrix.ArrayToMatrix(inputs, ref this.inputdata);
+                if(this.layers.Count>0){
+                    for(int i = 0; i<this.layers.Count; i++){
+                        if(i == 0){
+                            this.layers[i].set(this.inputdata);
+                        } else {
+                            this.layers[i].set(this.layers[i-1].outputs);
+                        }
+                    }
+                }
+
+                // <-- BackPropagation (LinearRegresion)
+
+            }
+            
+            
         }
 
         public void predict(){ // predict an output given an input

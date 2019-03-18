@@ -67,6 +67,35 @@ namespace nn.common
             return res;
         }
 
+        // dot product : sum of products
+        public static void dot (float[,] m1, float [,] m2, ref float [,] res){
+
+            // sanity checks
+            if(!Matrix.IsValid(m1)) return;
+            if(!Matrix.IsValid(m2)) return;
+            if(!Matrix.IsValid(res)) return;
+            if(res.GetLength(0) != m1.GetLength(0) || res.GetLength(1) != m2.GetLength(1)) return;
+
+            int nRows_m1 = m1.GetLength(0);
+            int nCols_m1 = m1.GetLength(1);
+            int nRows_m2 = m2.GetLength(0);
+            int nCols_m2 = m2.GetLength(1);
+            
+            float sum;
+
+            if ( nCols_m1 == nRows_m2){
+                for(int row = 0; row<nRows_m1; row++){
+                    for(int col = 0; col<nCols_m2; col++){
+                        sum = 0;
+                        for(int e = 0; e<nCols_m1; e++){
+                            sum += m1[row, e] * m2[e, col];
+                        }
+                        res[row, col] = sum;
+                    }
+                }
+            }
+        }
+
         // traspose matrix 2x3 to 3x2
         public static float[,] traspose(float [,] m){
 
@@ -105,6 +134,38 @@ namespace nn.common
             return res;
         }
 
+        // escalar operations : mult, sum, div, sub , etc
+        public static void  map(ref float [,] m, Func<float,int,int,float> func){
+            
+            // sanity checks
+            if(!Matrix.IsValid(m)) return;
+
+            int nRows = m.GetLength(0);
+            int nCols = m.GetLength(1);
+
+            for(int row = 0; row<nRows; row++){
+                for(int col = 0; col<nCols; col++){
+                    m[row, col] = func(m[row,col], row, col);
+                }
+            }
+
+        }
+
+        // copy array to a Matrix [1,N], return numbers of values written
+        public static int ArrayToMatrix(float[] arr, ref float[,] m){
+            
+            // sanity checks
+            if (!(arr!=null && arr.GetLength(0)>0)) return 0;
+            if(!Matrix.IsValid(m)) return 0;
+
+            int arrSize = arr.GetLength(0);
+            
+            for(int i = 0; i< arrSize; i++)
+                m[0,i] = arr[i];
+
+            return arrSize;
+        }
+
 
         // simple
         public static string toString(float[,] m, string valueDelimiter = "\t\t", string rowDelimiter = "\n"){
@@ -112,10 +173,11 @@ namespace nn.common
             // sanity checks
             if(!Matrix.IsValid(m)) return null;
 
-            string result = "";
+            
             int nRows = m.GetLength(0);
             int nCols = m.GetLength(1);
-            
+            string result = string.Format("\n[ {0} x {1} ]\n\n---\n\n",nRows, nCols);
+
             for(int row = 0; row<nRows; row++){
                 for(int col = 0; col<nCols; col++){
                     result += m[row,col];

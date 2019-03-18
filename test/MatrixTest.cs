@@ -90,8 +90,32 @@ namespace test
             Assert.Equal(c, res);
         }
 
-        // Theorys
+        [Fact]
+        public void Matrix_ArrayToMatrix_check()
+        {
+            float [] a1 = null;
+            float [,] m1 = null;
+            Assert.Equal(0, Matrix.ArrayToMatrix(a1,ref m1));
 
+            float [] a2 = {};
+            float [,] m2 = {{}};
+            Assert.Equal(0, Matrix.ArrayToMatrix(a2,ref m2));
+
+            float [] a3 = {1};
+            float [,] m3 = {{0}};
+            Assert.Equal(1, Matrix.ArrayToMatrix(a3,ref m3));
+            Assert.Equal(m3, new float[,]{{1}});
+
+            float [] a4 = {1,2};
+            float [,] m4 = {{0,0}};
+            Assert.Equal(2, Matrix.ArrayToMatrix(a4,ref m4));
+            Assert.Equal(m4, new float[,]{{1,2}});
+
+        }
+
+        // Theorys
+        
+ 
         [Theory]
         [MemberData(nameof(isvalid_data))]
         public void Matrix_isvalid_check(float[,] a, bool b)
