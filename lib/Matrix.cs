@@ -151,19 +151,36 @@ namespace nn.common
 
         }
 
-        // copy array to a Matrix [1,N], return numbers of values written
-        public static int ArrayToMatrix(float[] arr, ref float[,] m){
+        // float array to float Matrix [1,N]
+        public static float[,] ArrayToMatrix(float[] arr){
             
             // sanity checks
-            if (!(arr!=null && arr.GetLength(0)>0)) return 0;
-            if(!Matrix.IsValid(m)) return 0;
+            if (!(arr!=null && arr.GetLength(0)>0)) return null;
 
             int arrSize = arr.GetLength(0);
-            
+            float[,] m = new float[1, arrSize];
+
             for(int i = 0; i< arrSize; i++)
                 m[0,i] = arr[i];
 
-            return arrSize;
+            return m;
+        }
+
+        // float Matrix [1,N] to float array
+        public static float[] MatrixToArray(float [,] m) {
+
+            // sanity checks
+            if (!Matrix.IsValid(m)) return null;
+
+            int nCols = m.GetLength(1);
+            float[] arr = new float[nCols];
+
+            for (int i = 0; i < nCols; i++)
+                arr[i] = m[0, i];
+
+            return arr;
+
+
         }
 
 

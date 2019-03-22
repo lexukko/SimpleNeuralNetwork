@@ -25,11 +25,11 @@ namespace nn
             Console.WriteLine(Matrix.toString(snl.outputs));
             */
 
-            var snn = new SimpleNeuralNetwork(2);
+            var snn = new SimpleNeuralNetwork();
             snn.add(new SimpleNeuralLayer(2,4,ActivationFunctions.Sigmoid));
             snn.add(new SimpleNeuralLayer(4,4,ActivationFunctions.Sigmoid));
 
-            snn.train(new float[] {1,2});
+            snn.train(new float[] {1,0}, new float[] { 0, 0 });
             
             Console.WriteLine(Matrix.toString(snn.layers[0].inputs));
             Console.WriteLine(Matrix.toString(snn.layers[0].weights));
@@ -40,8 +40,8 @@ namespace nn
             Console.WriteLine(Matrix.toString(snn.layers[1].weights));
             Console.WriteLine(Matrix.toString(snn.layers[1].outputs));
 
-            
 
+            Console.ReadKey();
 
         }
     }
