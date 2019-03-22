@@ -33,14 +33,14 @@ namespace nn.common
                 
         }
 
-        private void feedforward(float[] xs) {
+        private void feedforward(float[,] xs) { // Nx1
             if (xs != null && xs.GetLength(0) == this.xs_no )
             {
                 if (this.layers.Count > 0)
                 {
                     for(int i = 0; i<this.layers.Count; i++){
                         if(i == 0){
-                            this.layers[i].set(Matrix.ArrayToMatrix(xs));
+                            this.layers[i].set(xs);
                         } else {
                             this.layers[i].set(this.layers[i-1].outputs);
                         }
@@ -49,7 +49,7 @@ namespace nn.common
             }
         }
 
-        private void backpropagation(float[] ys)
+        private void backpropagation(float[,] ys)
         {
             if ( ys != null && ys.GetLength(0) == this.ys_no)
             {
@@ -71,15 +71,15 @@ namespace nn.common
         }
 
         public void train(float[] xs, float [] ys){ // inputs and outputs are matrixes of 1xN
-            this.feedforward(xs);
-            this.backpropagation(ys);
+            this.feedforward(Matrix.fromArray(xs));
+            //this.backpropagation(Matrix.fromArray(ys));
         }
 
         public float[] predict(float[] xs) // predict an output given an input
         {
             if (this.layers.Count > 0) {
-                this.feedforward(xs);
-                return Matrix.MatrixToArray(this.layers[this.outputLayerNo].outputs);
+                this.feedforward(Matrix.fromArray(xs));
+                return Matrix.toArray(this.layers[this.outputLayerNo].outputs);
             }
             return null;
         }
