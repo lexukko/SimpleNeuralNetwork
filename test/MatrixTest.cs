@@ -127,8 +127,8 @@ namespace test
         [MemberData(nameof(traspose_data))]
         public void Matrix_traspose_check(float[,] a,float[,] b)
         {
-            Assert.Equal(a, Matrix.traspose(b));
-            Assert.Equal(b, Matrix.traspose(a));
+            Assert.Equal(a, Matrix.Traspose(b));
+            Assert.Equal(b, Matrix.Traspose(a));
         }
 
         [Theory]

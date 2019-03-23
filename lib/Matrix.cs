@@ -3,184 +3,177 @@ using System;
 
 namespace nn.common
 {
-    public static class Matrix
+    public class Matrix
     {
+        public float[,] data;
+        public int nRows, nCols;
 
-        // regresa matriz para el resultado de una operacion producto suma (dot)
-        public static float[,] newInstance(float [,] m1, float [,] m2)
-        {
-            if (m1 == null)
-                throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
-
-            if (m2 == null)
-                throw new System.ArgumentNullException("Matriz 'm2' no puede ser nula.");
-
-            int nRows_m1 = m1.GetLength(0);
-            int nCols_m1 = m1.GetLength(1);
-            int nRows_m2 = m2.GetLength(0);
-            int nCols_m2 = m2.GetLength(1);
-
-            if (!(nRows_m1 > 0 && nCols_m1 > 0 && nRows_m2 > 0 && nCols_m2 > 0))
-                throw new System.ArgumentException("Matrices ('m1', 'm2') necesitan tener un tamaño minimo de un registro y una columna.");
-
-            if (nCols_m1 != nRows_m2)
-                throw new System.ArgumentException("Columnas de la matriz 'm1' deben ser iguales a los registros de la matriz 'm2'.");
-
-
-            return new float[nRows_m1, nCols_m2];
+        public Matrix(int _nRows, int _nCols) {
+            if (!(_nRows > 0 && _nCols > 0)) throw new System.ArgumentException("Tamaño minimo aceptado 1x1.");
+            nRows = _nRows;
+            nCols = _nCols;
+            data = new float[nRows, nCols];
         }
 
-        // producto suma de dos matrices
-        public static void dot (float[,] m1, float [,] m2, ref float [,] res){
-
-            if ( m1 == null )
-                throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
-
-            if ( m2 == null )
-                throw new System.ArgumentNullException("Matriz 'm2' no puede ser nula.");
-
-            if ( res == null )
-                throw new System.ArgumentNullException("Matriz 'res' no puede ser nula.");
-
-            int nRows_m1 = m1.GetLength(0);
-            int nCols_m1 = m1.GetLength(1);
-            int nRows_m2 = m2.GetLength(0);
-            int nCols_m2 = m2.GetLength(1);
-            int nRows_res = res.GetLength(0);
-            int nCols_res = res.GetLength(1);
-
-            if (!( nRows_m1 > 0 && nCols_m1>0 && nRows_m2 > 0 && nCols_m2 > 0 ))
-                throw new System.ArgumentException("Matrices ('m1', 'm2') necesitan tener un tamaño minimo de un registro y una columna.");
-
-            if ( nCols_m1 != nRows_m2 )
-                throw new System.ArgumentException("Columnas de la matriz 'm1' deben ser iguales a los registros de la matriz 'm2'.");
-
-            if (!(nRows_res == nRows_m1 && nCols_res == nCols_m2))
-                throw new System.ArgumentException("Registros de la matriz 'm1' deben ser iguales a los registros de la matriz 'res' y las columnas de la matriz 'm2' deben ser iguales a las columnas de la matriz 'res'.");
-
-            float sum = 0;
-
-            for(int row = 0; row<nRows_m1; row++){
-                for(int col = 0; col<nCols_m2; col++){
-                    sum = 0;
-                    for(int e = 0; e<nCols_m1; e++){
-                        sum += m1[row, e] * m2[e, col];
-                    }
-                    res[row, col] = sum;
-                }
-            }
-
+        public Matrix(Matrix m1){
+            if (m1 == null) throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
+            nRows = m1.nRows;
+            nCols = m1.nCols;
+            data = new float[m1.nRows, m1.nCols];
+            Copy(m1);
         }
 
-        // traspose matrix 2x3 to 3x2
-        public static float[,] traspose(float [,] m1){
-
-            if (m1 == null)
-                throw new System.ArgumentException("Matriz 'm1' no puede ser nula.");
-
-            int nRows = m1.GetLength(0);
-            int nCols = m1.GetLength(1);
-
-            if (!(nRows > 0 && nCols > 0 ))
-                throw new System.ArgumentException("Matriz 'm1' necesita tener un tamaño minimo de un registro y una columna.");
-
-            var res = new float[nCols, nRows];
-        
-            for(int row = 0; row<nRows; row++){
-                for(int col = 0; col<nCols; col++){
-                    res[col, row] = m1[row, col];
-                }
-            }
-
-            return res;
+        // Copy
+        public void Copy(Matrix m1) {
+            if (m1 == null) throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
+            if (!(m1.nRows == nRows && m1.nCols == nCols)) throw new System.ArgumentException("las dimensiones de 'm1' son distintas a las de la matriz interna.");
+            Map((v, r, c) => {
+                return m1.data[r, c];
+            });
         }
 
-        // ejecuta funcion func para cada elemento de la matriz m1
-        public static void  map(ref float [,] m1, Func<float,int,int,float> func){
-
-            if (m1 == null)
-                throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
-
-            if (func == null)
-                throw new System.ArgumentNullException("Funcion 'func' no puede ser nula.");
-
-            int nRows = m1.GetLength(0);
-            int nCols = m1.GetLength(1);
-
-            if (!(nRows > 0 && nCols > 0))
-                throw new System.ArgumentException("Matriz 'm1' necesita tener un tamaño minimo de un registro y una columna.");
-
-            for (int row = 0; row<nRows; row++){
-                for(int col = 0; col<nCols; col++){
-                    m1[row, col] = func(m1[row,col], row, col);
-                }
-            }
-
-        }
-
-        // float array to float Matrix [N,1]
-        public static float[,] fromArray(float[] arr){
-
-            if (arr == null)
-                throw new System.ArgumentNullException("Array 'arr' no puede ser nulo.");
-
+        // Array[N] -> Matrix[N,1]
+        public static Matrix FromArray(float[] arr) {
+            if (arr == null) throw new System.ArgumentNullException("Array 'arr' no puede ser nulo.");
             int arrSize = arr.GetLength(0);
-
-            if (!(arrSize > 0))
-                throw new System.ArgumentException("Array 'arr' necesita un tamaño minimo de 1.");
-
-            float[,] m1 = new float[arrSize,1];
-
-            for(int i = 0; i< arrSize; i++)
-                m1[i,0] = arr[i];
-
+            if (!(arrSize > 0)) throw new System.ArgumentException("Array 'arr' necesita un tamaño minimo de 1.");
+            var m1 = new Matrix(arrSize, 1); // Nx1
+            for (int i = 0; i < arrSize; i++)
+                m1.data[i, 0] = arr[i];
             return m1;
         }
 
-        // float Matrix [N,1] to float array
-        public static float[] toArray(float [,] m1) {
-
-            if (m1 == null)
-                throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
-
-            int nRows = m1.GetLength(0);
-            int nCols = m1.GetLength(1);
-
-            if (!(nRows > 0 && nCols > 0))
-                throw new System.ArgumentException("Matriz 'm1' necesita tener un tamaño minimo de un registro y una columna.");
-
+        // this Matrix[N,1] -> Array[N]
+        public float[] ToArray() {
             float[] arr = new float[nRows];
-
             for (int i = 0; i < nRows; i++)
-                arr[i] = m1[i,0];
-
+                arr[i] = data[i, 0];
             return arr;
         }
 
+        public static void Map(ref Matrix m1, Func<float, int, int, float> func) {
+            if (m1 == null) throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
+            if (func == null) throw new System.ArgumentNullException("Funcion 'func' no puede ser nula.");
+            for (int row = 0; row < m1.nRows; row++) {
+                for (int col = 0; col < m1.nCols; col++) {
+                    m1.data[row, col] = func(m1.data[row, col], row, col);
+                }
+            }
+        }
 
-        // simple
-        public static string toString(float[,] m1, string valueDelimiter = "\t\t", string rowDelimiter = "\n"){
+        public void Map(Func<float, int, int, float> func) {
+            if (func == null) throw new System.ArgumentNullException("Funcion 'func' no puede ser nula.");
+            for (int row = 0; row < nRows; row++) {
+                for (int col = 0; col < nCols; col++) {
+                    data[row, col] = func(data[row, col], row, col);
+                }
+            }
+        }
 
-            if (m1 == null)
-                throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
+        // Matrix[R,C] -> Matrix[C,R]
+        public static Matrix Transpose(Matrix m1) {
+            if (m1 == null) throw new System.ArgumentException("Matriz 'm1' no puede ser nula.");
+            var res = new Matrix(m1.nCols, m1.nRows);
+            for(int row = 0; row<m1.nRows; row++){
+                for(int col = 0; col<m1.nCols; col++){
+                    res.data[col, row] = m1.data[row, col];
+                }
+            }
+            return res;
+        }
 
-            int nRows = m1.GetLength(0);
-            int nCols = m1.GetLength(1);
-
-            if (!(nRows > 0 && nCols > 0))
-                throw new System.ArgumentException("Matriz 'm1' necesita tener un tamaño minimo de un registro y una columna.");
-
-            string result = "";//string.Format("\n[ {0} x {1} ]\n\n---\n\n",nRows, nCols);
-
-            for(int row = 0; row<nRows; row++){
-                for(int col = 0; col<nCols; col++){
-                    result += m1[row,col];
+        // Matrix.ToString()
+        public static string ToString(Matrix m1, string valueDelimiter = "\t\t", string rowDelimiter = "\n"){
+            if (m1 == null) throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
+            string result = "";
+            for(int row = 0; row<m1.nRows; row++){
+                for(int col = 0; col<m1.nCols; col++){
+                    result += m1.data[row,col];
                     result += valueDelimiter;
                 }
                 result += rowDelimiter;
             }
-
             return result;
+        }
+
+        // producto suma de dos matrices
+        public static Matrix Dot(Matrix m1, Matrix m2)
+        {
+            if (m1 == null || m2 == null) throw new System.ArgumentNullException("No se admiten parametros nulos.");
+            if (m1.nCols != m2.nRows) throw new System.ArgumentException("# Columnas de 'm1' diferente a # registros 'm2'.");
+            float sum = 0;
+            var res = new Matrix(m1.nRows, m2.nCols);
+            for (int row = 0; row < m1.nRows; row++)
+            {
+                for (int col = 0; col < m2.nCols; col++)
+                {
+                    sum = 0;
+                    for (int e = 0; e < m1.nCols; e++)
+                        sum += m1.data[row, e] * m2.data[e, col];
+                    res.data[row, col] = sum;
+                }
+            }
+            return res;
+        }
+
+        // add, sub, mult, div element wise
+
+        public void Add(Matrix m1) {
+            if (m1 == null) throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
+            if (!(m1.nRows == nRows && m1.nCols == nCols)) throw new System.ArgumentException("las dimensiones de 'm1' son distintas a las de la matriz interna.");
+            this.Map((v, r, c) => {
+                return v + m1.data[r, c];
+            });
+        }
+
+        public void Sub(Matrix m1) {
+            if (m1 == null) throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
+            if (!(m1.nRows == nRows && m1.nCols == nCols)) throw new System.ArgumentException("las dimensiones de 'm1' son distintas a las de la matriz interna.");
+            this.Map((v, r, c) => {
+                return v - m1.data[r, c];
+            });
+        }
+
+        public void Mult(Matrix m1) {
+            if (m1 == null) throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
+            if (!(m1.nRows == nRows && m1.nCols == nCols)) throw new System.ArgumentException("las dimensiones de 'm1' son distintas a las de la matriz interna.");
+            this.Map((v, r, c) => {
+                return v * m1.data[r, c];
+            });
+        }
+
+        public void Div(Matrix m1) {
+            if (m1 == null) throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
+            if (!(m1.nRows == nRows && m1.nCols == nCols)) throw new System.ArgumentException("las dimensiones de 'm1' son distintas a las de la matriz interna.");
+            this.Map((v, r, c) => {
+                return v / m1.data[r, c];
+            });
+        }
+
+        // add, sub, mult, div escalar
+
+        public void Add(float a) {
+            this.Map((v, rows, cols) => {
+                return v + a;
+            });
+        }
+
+        public void Sub(float a) {
+            this.Map((v, rows, cols) => {
+                return v - a;
+            });
+        }
+
+        public void Mult(float a) {
+            this.Map((v, rows, cols) => {
+                return v * a;
+            });
+        }
+
+        public void Div(float a) {
+            this.Map((v, rows, cols) => {
+                return v / a;
+            });
         }
 
     }

@@ -4,91 +4,52 @@ using nn.common;
 namespace common.nn{
     public class SimpleNeuralLayer{
 
-        public float[,] inputs;
-        public float[,] outputs;
-        public float[,] bias; // mismo tamaño que outputs
-        public float[,] weights;
+        public Matrix inputs;
+        public Matrix outputs;
+        public Matrix bias;
+        public Matrix weights;
 
         public Func<float,float>   func;
         public Func<float, float> dfunc;
 
 
-        public SimpleNeuralLayer(int noInputs, int noOutputs, Func<float,float> func, Func<float, float> dfunc){ // # Outputs ==  # perceptrons ( neurons )
+        public SimpleNeuralLayer(int noInputs, int noOutputs, Func<float,float> _func, Func<float, float> _dfunc){ // # Outputs ==  # perceptrons ( neurons )
+            if ( _func == null) throw new System.ArgumentNullException("Funcion de activacion '_func' no puede ser nula.");
+            if ( _dfunc == null) throw new System.ArgumentNullException("Funcion de activacion '_dfunc' no puede ser nula.");
+            if (!( noInputs > 0 && noOutputs > 0)) throw new System.ArgumentException("Entradas y salidas de la capa ('noInputs', 'noOutputs') deben ser mayores a cero.");
 
-            if ( func == null)
-                throw new System.ArgumentNullException("Funcion de activacion 'func' no puede ser nula.");
-
-            if (dfunc == null)
-                throw new System.ArgumentNullException("Funcion de activacion 'dfunc' no puede ser nula.");
-
-            if (!( noInputs > 0 && noOutputs > 0))
-                throw new System.ArgumentException("Entradas y salidas de la capa ('noInputs', 'noOutputs') deben ser mayores a cero.");
-
-            // inputs matrix Nx1
-            this.inputs = new float[noInputs, 1];
-
-            // outpus matrix Nx1
-            this.outputs = new float[noOutputs, 1];
-
-            // bias matrix Nx1
-            this.bias = new float[noOutputs, 1];
-
-            // weights matrix rows = noOutputs , cols = noInputs
-            this.weights = new float[noOutputs, noInputs];
-
-            // Activation Function
-            this.func = func;
-            // Activation Function derivate
-            this.dfunc = dfunc;
+            inputs = new Matrix(noInputs, 1);
+            outputs = new Matrix(noOutputs, 1);
+            bias = new Matrix(noOutputs, 1);
+            weights = new Matrix(noOutputs, noInputs);
+            func = _func;
+            dfunc = _dfunc;
 
             // randomiza valores de pesos y bias 0.01f - 1.0f
-            Matrix.map(ref this.weights, (val,row,col) => {
+            weights.Map((v, r, c) => {
                 return NNUtils.GetRandomNumber(-1.0f, 1.0f);
             });
 
-            Matrix.map(ref this.bias, (val, row, col) => {
+            bias.Map((v, r, c) => {
                 return NNUtils.GetRandomNumber(-1.0f, 1.0f);
             });
-
         }
 
 
-        public void set(float [,] inputs){ // inject data to this layer "FeedForward" Nx1
-
-            if ( inputs == null )
-                throw new System.ArgumentNullException("Matriz 'inputs' no puede ser nula.");
-
-            int nRows_inputs_param = inputs.GetLength(0);
-            int nCols_inputs_param = inputs.GetLength(1);
-
-            int nRows_inputs = this.inputs.GetLength(0);
-            int nCols_inputs = this.inputs.GetLength(1);
-
-            if (!(nRows_inputs_param == nRows_inputs && nCols_inputs_param == nCols_inputs))
-                throw new System.ArgumentException(string.Format("Las dimensiones de la matriz 'inputs' deben ser [ {0} x {1} ]", nRows_inputs, nCols_inputs));
-
-            // copia parametro inputs a this.inputs
-            Matrix.map(ref this.inputs, (input, row, col) => {
-                return inputs[row, col];
+        public void Feed(Matrix _inputs) {
+            if ( inputs == null ) throw new System.ArgumentNullException("Matriz 'inputs' no puede ser nula.");
+            inputs.Copy(_inputs);
+            // outputs = func ( weights x inputs + bias )
+            outputs.Copy(Matrix.Dot(weights,inputs));
+            outputs.Add(bias);
+            outputs.Map((v, r, c) => {
+                return func(v);
             });
-
-            // dot product outputs = weights x inputs + bias
-            Matrix.dot(this.weights, this.inputs, ref this.outputs);
-
-            Matrix.map(ref this.outputs, (weight, row, col) => {
-                return weight + this.bias[row, col];
-            });
-
-            // perform activation function
-            Matrix.map(ref this.outputs, (output, row,col)=>{
-                return this.func(output);
-            });
-
         }
 
         // getters numero de entradas (noInputs) y numero de salidas (noOutputs)
-        public int noInputs { get => this.inputs.GetLength(0); }
-        public int noOutputs { get => this.outputs.GetLength(0); }
+        public int NoInputs { get => inputs.nRows; }
+        public int NoOutputs { get => outputs.nRows; }
 
     }
 
