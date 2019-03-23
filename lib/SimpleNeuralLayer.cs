@@ -9,13 +9,17 @@ namespace common.nn{
         public float[,] bias; // mismo tamaño que outputs
         public float[,] weights;
 
-        public Func<float,float> ActivationFunc;
+        public Func<float,float>   func;
+        public Func<float, float> dfunc;
 
-        
-        public SimpleNeuralLayer(int noInputs, int noOutputs, Func<float,float> func){ // # Outputs ==  # perceptrons ( neurons )
+
+        public SimpleNeuralLayer(int noInputs, int noOutputs, Func<float,float> func, Func<float, float> dfunc){ // # Outputs ==  # perceptrons ( neurons )
 
             if ( func == null)
                 throw new System.ArgumentNullException("Funcion de activacion 'func' no puede ser nula.");
+
+            if (dfunc == null)
+                throw new System.ArgumentNullException("Funcion de activacion 'dfunc' no puede ser nula.");
 
             if (!( noInputs > 0 && noOutputs > 0))
                 throw new System.ArgumentException("Entradas y salidas de la capa ('noInputs', 'noOutputs') deben ser mayores a cero.");
@@ -33,15 +37,17 @@ namespace common.nn{
             this.weights = new float[noOutputs, noInputs];
 
             // Activation Function
-            this.ActivationFunc = func;
+            this.func = func;
+            // Activation Function derivate
+            this.dfunc = dfunc;
 
             // randomiza valores de pesos y bias 0.01f - 1.0f
             Matrix.map(ref this.weights, (val,row,col) => {
-                return NNUtils.GetRandomNumber(0.01f,1.0f);
+                return NNUtils.GetRandomNumber(-1.0f, 1.0f);
             });
 
             Matrix.map(ref this.bias, (val, row, col) => {
-                return NNUtils.GetRandomNumber(0.01f, 1.0f);
+                return NNUtils.GetRandomNumber(-1.0f, 1.0f);
             });
 
         }
@@ -75,7 +81,7 @@ namespace common.nn{
 
             // perform activation function
             Matrix.map(ref this.outputs, (output, row,col)=>{
-                return this.ActivationFunc(output);
+                return this.func(output);
             });
 
         }

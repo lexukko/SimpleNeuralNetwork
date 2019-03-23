@@ -170,7 +170,7 @@ namespace nn.common
             if (!(nRows > 0 && nCols > 0))
                 throw new System.ArgumentException("Matriz 'm1' necesita tener un tamaño minimo de un registro y una columna.");
 
-            string result = string.Format("\n[ {0} x {1} ]\n\n---\n\n",nRows, nCols);
+            string result = "";//string.Format("\n[ {0} x {1} ]\n\n---\n\n",nRows, nCols);
 
             for(int row = 0; row<nRows; row++){
                 for(int col = 0; col<nCols; col++){
