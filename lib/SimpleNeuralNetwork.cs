@@ -50,41 +50,28 @@ namespace nn.common
         private void BackPropagation(Matrix targets){
             if (targets == null) throw new System.ArgumentNullException("'outputs' no puede ser nulo.");
             if (targets.nRows != NoOutputs) throw new System.ArgumentException("numero de registros de 'outputs' debe ser igual al numero de entradas de la capa.");
-            Matrix errors1 = null;
-            Matrix errors2 = null;
             for (int i = outputLayerNo; i >= 0; i--) {
-                // errors = targets - outputs
-                if (i == outputLayerNo) {
-                    errors1 = new Matrix(targets);
-                    errors1.Sub(layers[i].outputs);
 
-                    var gradients = new Matrix(layers[i].outputs);
-                    gradients.Map((v, r, c) => {
-                        return layers[i].dfunc(v);
-                    });
-                    gradients.Mult(errors1);
-                    gradients.Mult(lr);
-                    var deltas = Matrix.Dot(gradients, Matrix.Transpose(layers[i].inputs));
-                    // Ajustar pesos de la capa
-                    layers[i].weights.Add(deltas);
-                    // Ajustas bias de la capa
-                    layers[i].bias.Add(gradients);
+                if (i == outputLayerNo){
+                    layers[i].errors.Copy(targets);
+                    layers[i].errors.Sub(layers[i].outputs);
+                } else {
+                    var prev_weights = Matrix.Transpose(layers[i + 1].weights);
+                    layers[i].errors.Copy(Matrix.Dot(prev_weights, layers[i+1].errors));
                 }
-                else {
-                    errors2 = new Matrix(Matrix.Dot(Matrix.Transpose(layers[i + 1].weights), errors1));
-                    var gradients = new Matrix(layers[i].outputs);
-                    gradients.Map((v, r, c) => {
-                        return layers[i].dfunc(v);
-                    });
-                    gradients.Mult(errors2);
-                    gradients.Mult(lr);
-                    var deltas = Matrix.Dot(gradients, Matrix.Transpose(layers[i].inputs));
-                    // Ajustar pesos de la capa
-                    layers[i].weights.Add(deltas);
-                    // Ajustas bias de la capa
-                    layers[i].bias.Add(gradients);
 
-                }
+                var gradients = new Matrix(layers[i].outputs);
+                gradients.Map((v, r, c) => {
+                    return layers[i].dfunc(v);
+                });
+                gradients.Mult(layers[i].errors);
+                gradients.Mult(lr);
+                var deltas = Matrix.Dot(gradients, Matrix.Transpose(layers[i].inputs));
+                // Ajustar pesos de la capa
+                layers[i].weights.Add(deltas);
+                // Ajustas bias de la capa
+                layers[i].bias.Add(gradients);
+
             }
         }
 
