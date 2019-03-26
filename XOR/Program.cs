@@ -9,11 +9,9 @@ namespace nn
     {
         static void Main(string[] args)
         {
-            var snn = new SimpleNeuralNetwork(0.1f);
-            snn.Add(new SimpleNeuralLayer(2, 4, ActivationFunctions.Sigmoid, ActivationFunctions.dSigmoid));
-            snn.Add(new SimpleNeuralLayer(4, 2, ActivationFunctions.Sigmoid, ActivationFunctions.dSigmoid));
-            //snn.Add(new SimpleNeuralLayer(2, 2, ActivationFunctions.Sigmoid, ActivationFunctions.dSigmoid));
-            snn.Add(new SimpleNeuralLayer(2, 1, ActivationFunctions.Sigmoid, ActivationFunctions.dSigmoid));
+            var snn = new SimpleNeuralNetwork(2, 0.4f, ActivationFunctions.Sigmoid, ActivationFunctions.dSigmoid);
+            snn.Add(2);
+            snn.Add(1);
 
             // train
             var training_data = new Dictionary<int, Tuple<float[], float[]>>

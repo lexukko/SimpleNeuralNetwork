@@ -15,6 +15,17 @@ namespace nn.common
             data = new float[nRows, nCols];
         }
 
+        public Matrix(float [,] m1){
+            if (m1 == null) throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
+            nRows = m1.GetLength(0);
+            nCols = m1.GetLength(1);
+            if (!(nRows > 0 && nCols > 0)) throw new System.ArgumentException("Tamaño minimo aceptado 1x1.");
+            data = new float[nRows, nCols];
+            Map((v, r, c) => {
+                return m1[r, c];
+            });
+        }
+
         public Matrix(Matrix m1){
             if (m1 == null) throw new System.ArgumentNullException("Matriz 'm1' no puede ser nula.");
             nRows = m1.nRows;

@@ -10,19 +10,6 @@ namespace test
         // data Generators
         // https://www.mathsisfun.com/algebra/matrix-multiplying.html
 
-        public static IEnumerable<object[]> isvalid_data =>
-            new List<object[]>
-            {
-                new object[] { null                             , false   },
-                new object[] { new float[,]{}                   , false   },
-                new object[] { new float[,]{{}}                 , false   },
-                new object[] { new float[,]{{},{}}              , false   },
-                new object[] { new float[,]{{1},{1}}            , true    },
-                new object[] { new float[,]{{1,1}}              , true    },
-                new object[] { new float[,]{{1,2,3},{4,5,6}}    , true    },
-                new object[] { new float[,]{{1,4},{2,5},{3,6}}  , true    }
-            };
-
         public static IEnumerable<object[]> traspose_data =>
             new List<object[]>
             {
@@ -42,100 +29,37 @@ namespace test
         // Facts
 
         [Fact]
-        public void Matrix_map_check()
+        public void Matrix_Escalar_Mult_Check()
         {
-            float [,] a = {{1,2,3},{4,5,6}};
-            float [,] b = {{2,4,6},{8,10,12}};
-            float [,] c = {{2,3,4},{5,6,7}};
+            Matrix ma = new Matrix(new float[,] { {1,2,3},{4,5,6}});
+            float [,] b = { { 2, 4, 6 }, { 8, 10, 12 } };
 
-            var res1 = Matrix.map(a, (val, row, col) => {
-                return val * 2;
-            });
-            
-            Assert.Equal(b, res1); // Escalar matrix multiplication
-
-            var res2 = Matrix.map(b, (val, row, col) => {
-                return val / 2;
-            });
-
-            Assert.Equal(a, res2); // Escalar matrix division
-
-
-            var res3 = Matrix.map(a, (val, row, col) => {
-                return val + 1;
-            });
-
-            Assert.Equal(c, res3); // Escalar matrix adition
-
-            var res4 = Matrix.map(c, (val, row, col) => {
-                return val - 1;
-            });
-
-            Assert.Equal(a, res4); // Escalar matrix subtraction
-            
-
+            ma.Mult(2);        
+            Assert.Equal(ma.data, b); // escalar multiply
         }
 
-        [Fact]
-        public void Matrix_ewise_check()
-        {
-            float [,] a = {{1,2,3},{4,5,6}};
-            float [,] b = {{2,4,6},{8,10,12}};
-            float [,] c = {{3,6,9},{12,15,18}};
 
-            var res = Matrix.ewise(a,b,(val1, val2) => { // element wise adition
-                return val1+ val2;
-            });
-
-            Assert.Equal(c, res);
-        }
-
-        [Fact]
-        public void Matrix_ArrayToMatrix_check()
-        {
-            float [] a1 = null;
-            float [,] m1 = null;
-            Assert.Equal(0, Matrix.ArrayToMatrix(a1,ref m1));
-
-            float [] a2 = {};
-            float [,] m2 = {{}};
-            Assert.Equal(0, Matrix.ArrayToMatrix(a2,ref m2));
-
-            float [] a3 = {1};
-            float [,] m3 = {{0}};
-            Assert.Equal(1, Matrix.ArrayToMatrix(a3,ref m3));
-            Assert.Equal(m3, new float[,]{{1}});
-
-            float [] a4 = {1,2};
-            float [,] m4 = {{0,0}};
-            Assert.Equal(2, Matrix.ArrayToMatrix(a4,ref m4));
-            Assert.Equal(m4, new float[,]{{1,2}});
-
-        }
 
         // Theorys
         
- 
-        [Theory]
-        [MemberData(nameof(isvalid_data))]
-        public void Matrix_isvalid_check(float[,] a, bool b)
-        {
-            Assert.Equal(Matrix.IsValid(a), b);
-        }
-
         [Theory]
         [MemberData(nameof(traspose_data))]
         public void Matrix_traspose_check(float[,] a,float[,] b)
         {
-            Assert.Equal(a, Matrix.Traspose(b));
-            Assert.Equal(b, Matrix.Traspose(a));
+            Matrix ma = new Matrix(a);
+            Matrix mb = new Matrix(b);
+            Assert.Equal(a, Matrix.Transpose(mb).data);
+            Assert.Equal(b, Matrix.Transpose(ma).data);
         }
 
         [Theory]
         [MemberData(nameof(dot_data))]
         public void Matrix_dot_check(float[,] a,float[,] b, float[,] result)
         {
-            Assert.Equal(Matrix.dot(a,b), result);
+            Matrix ma = new Matrix(a);
+            Matrix mb = new Matrix(b);
+            Matrix mresult = new Matrix(result);
+            Assert.Equal(Matrix.Dot(ma,mb).data, result);
         }
 
     }

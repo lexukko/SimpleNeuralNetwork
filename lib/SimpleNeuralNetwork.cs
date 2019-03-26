@@ -10,25 +10,34 @@ namespace nn.common
         public int NoInputs;
         public int NoOutputs;
         public int outputLayerNo;
-        public float lr;
+        public float learning_rate;
         public List<SimpleNeuralLayer> layers;
 
-        public SimpleNeuralNetwork(float _lr) {
+        public Func<float, float> func;
+        public Func<float, float> dfunc;
+
+        public SimpleNeuralNetwork(int _NoInputs, float _learning_rate, Func<float, float> _func, Func<float, float> _dfunc) {
+            if (_func == null) throw new System.ArgumentNullException("funcion '_func' no puede ser nula.");
+            if (_dfunc == null) throw new System.ArgumentNullException("funcion '_dfunc' no puede ser nula.");
+            if (!(_NoInputs > 0)) throw new System.ArgumentException("'_NoInputs' debe ser mayor a 0.");
+            if (!(_learning_rate > 0.0f && _learning_rate <= 1.0f)) throw new System.ArgumentException("'_learning_rate' debe ser un valor mayor a 0.0 y menor o igual a 1.0 .");
+
             layers = new List<SimpleNeuralLayer>();
-            lr = _lr;
+            learning_rate = _learning_rate;
+            func = _func;
+            dfunc = _dfunc;
+            NoInputs = _NoInputs;
         }
 
-        public void Add(SimpleNeuralLayer layer) {
-            if (layer == null) throw new System.ArgumentNullException("'layer' no puede ser nulo.");
-            layers.Add(layer);
-            if (layers.Count == 1) {
-                NoInputs = layer.NoInputs;
-                NoOutputs = layer.NoOutputs;
-                outputLayerNo = layers.Count - 1;
-            } else if (layers.Count > 1) {
-                NoOutputs = layer.NoOutputs;
-                outputLayerNo = layers.Count - 1;
+        public void Add(int _NoOutputs) {
+            if (!(_NoOutputs > 0)) throw new System.ArgumentException("'_NoOutputs' debe ser mayor a 0.");
+            if (layers.Count == 0){
+                layers.Add(new SimpleNeuralLayer(NoInputs, _NoOutputs));
+            } else {
+                layers.Add(new SimpleNeuralLayer(layers[layers.Count-1].NoOutputs, _NoOutputs));
             }
+            NoOutputs = _NoOutputs;
+            outputLayerNo = layers.Count - 1;
         }
 
         private void FeedFordward(Matrix inputs) { // Nx1
@@ -38,9 +47,9 @@ namespace nn.common
 
             for (int i = 0; i < layers.Count; i++) {
                 if (i == 0){
-                    layers[i].Feed(inputs);
+                    layers[i].Feed(inputs, func);
                 } else {
-                    layers[i].Feed(layers[i - 1].outputs);
+                    layers[i].Feed(layers[i - 1].outputs, func);
                 }
             }
         }
@@ -62,10 +71,10 @@ namespace nn.common
 
                 var gradients = new Matrix(layers[i].outputs);
                 gradients.Map((v, r, c) => {
-                    return layers[i].dfunc(v);
+                    return dfunc(v);
                 });
                 gradients.Mult(layers[i].errors);
-                gradients.Mult(lr);
+                gradients.Mult(learning_rate);
                 var deltas = Matrix.Dot(gradients, Matrix.Transpose(layers[i].inputs));
                 // Ajustar pesos de la capa
                 layers[i].weights.Add(deltas);
