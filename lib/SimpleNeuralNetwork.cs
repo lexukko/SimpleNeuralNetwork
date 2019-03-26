@@ -1,7 +1,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using common.nn;
+using Newtonsoft.Json;
+using static common.nn.Activation;
 
 namespace nn.common
 {
@@ -11,21 +14,31 @@ namespace nn.common
         public int NoOutputs;
         public int outputLayerNo;
         public float learning_rate;
-        public List<SimpleNeuralLayer> layers;
+        public FunctionsEnum ActivationFunction;
 
+        public List<SimpleNeuralLayer> layers;
+        
+
+        [JsonIgnore]
         public Func<float, float> func;
+        [JsonIgnore]
         public Func<float, float> dfunc;
 
-        public SimpleNeuralNetwork(int _NoInputs, float _learning_rate, Func<float, float> _func, Func<float, float> _dfunc) {
-            if (_func == null) throw new System.ArgumentNullException("funcion '_func' no puede ser nula.");
-            if (_dfunc == null) throw new System.ArgumentNullException("funcion '_dfunc' no puede ser nula.");
+        [JsonConstructor]
+        public SimpleNeuralNetwork() {
+        }
+
+        public SimpleNeuralNetwork(int _NoInputs, float _learning_rate, FunctionsEnum _ActivationFunction) {
+            //if (_func == null) throw new System.ArgumentNullException("funcion '_func' no puede ser nula.");
+            //if (_dfunc == null) throw new System.ArgumentNullException("funcion '_dfunc' no puede ser nula.");
             if (!(_NoInputs > 0)) throw new System.ArgumentException("'_NoInputs' debe ser mayor a 0.");
             if (!(_learning_rate > 0.0f && _learning_rate <= 1.0f)) throw new System.ArgumentException("'_learning_rate' debe ser un valor mayor a 0.0 y menor o igual a 1.0 .");
 
             layers = new List<SimpleNeuralLayer>();
             learning_rate = _learning_rate;
-            func = _func;
-            dfunc = _dfunc;
+            ActivationFunction = _ActivationFunction;
+            func = Activation.FunctionsLst[(int)ActivationFunction].Item1;
+            dfunc = Activation.FunctionsLst[(int)ActivationFunction].Item2;
             NoInputs = _NoInputs;
         }
 
@@ -97,12 +110,26 @@ namespace nn.common
             return layers[outputLayerNo].outputs.ToArray();
         }
 
-        public void Save() {
-            if (!(this.layers.Count > 0)) throw new System.ArgumentException("La red neuronal necesita almenos una capa para poder operar.");
+        public static void Save(SimpleNeuralNetwork snn, String filepath) {
+            if (!(snn.layers.Count > 0)) throw new System.ArgumentException("La red neuronal necesita almenos una capa para poder operar.");
+            File.WriteAllText(filepath, JsonConvert.SerializeObject(snn, Formatting.Indented));
         }
 
-        public void Load() {
-            if (this.layers.Count > 0) throw new System.ArgumentException("La red neuronal necesita no tener capas para utilizar este metodo.");
+        public static SimpleNeuralNetwork Load(String filepath) {
+            SimpleNeuralNetwork snn = JsonConvert.DeserializeObject<SimpleNeuralNetwork>(File.ReadAllText(filepath));
+            
+            // manualmente inicializa funciones activacion por que al deserializar solo traemos el enum
+            snn.func = Activation.FunctionsLst[(int)snn.ActivationFunction].Item1;
+            snn.dfunc = Activation.FunctionsLst[(int)snn.ActivationFunction].Item2;
+            
+            // incializa manualmente las matrices inputs, errors, outputs de cada layer
+            foreach(SimpleNeuralLayer snl in snn.layers) {
+                snl.inputs = new Matrix(snl.NoInputs, 1);
+                snl.errors = new Matrix(snl.NoOutputs, 1);
+                snl.outputs = new Matrix(snl.NoOutputs, 1);
+            }
+
+            return snn;
         }
 
     }

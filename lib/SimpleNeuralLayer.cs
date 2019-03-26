@@ -1,18 +1,26 @@
 using System;
+using Newtonsoft.Json;
 using nn.common;
 
 namespace common.nn{
     public class SimpleNeuralLayer{
 
+        [JsonIgnore]
         public Matrix inputs;
+        [JsonIgnore]
         public Matrix errors;
+        [JsonIgnore]
         public Matrix outputs;
+
         public Matrix bias;
         public Matrix weights;
 
         public int NoInputs = 0;
         public int NoOutputs = 0;
 
+        [JsonConstructor]
+        public SimpleNeuralLayer() {
+        }
 
         public SimpleNeuralLayer(int _noInputs, int _noOutputs){ // # Outputs ==  # perceptrons ( neurons )
             if (!( _noInputs > 0 && _noOutputs > 0)) throw new System.ArgumentException("Entradas y salidas de la capa ('_noInputs', '_noOutputs') deben ser mayores a cero.");

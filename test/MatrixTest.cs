@@ -58,7 +58,6 @@ namespace test
         {
             Matrix ma = new Matrix(a);
             Matrix mb = new Matrix(b);
-            Matrix mresult = new Matrix(result);
             Assert.Equal(Matrix.Dot(ma,mb).data, result);
         }
 

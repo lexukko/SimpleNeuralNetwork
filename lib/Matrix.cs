@@ -1,4 +1,5 @@
 
+using Newtonsoft.Json;
 using System;
 
 namespace nn.common
@@ -7,6 +8,11 @@ namespace nn.common
     {
         public float[,] data;
         public int nRows, nCols;
+
+        [JsonConstructor]
+        public Matrix() {
+
+        }
 
         public Matrix(int _nRows, int _nCols) {
             if (!(_nRows > 0 && _nCols > 0)) throw new System.ArgumentException("Tamaño minimo aceptado 1x1.");
