@@ -20,7 +20,7 @@ namespace nn
             };
 
             var snn = new SimpleNeuralNetwork(2, 0.4f, Activation.FunctionsEnum.Sigmoid);
-            snn.Add(2);
+            snn.Add(4);
             snn.Add(1);
 
             // train
@@ -42,7 +42,9 @@ namespace nn
                 Console.WriteLine(string.Format("xs [ {0}, {1} ] = {2}", training_data[i].Item1[0], training_data[i].Item1[1], res[0]));
             }
 
+            
             SimpleNeuralNetwork.Save(snn, filepath);
+            Console.WriteLine("\nRed Neuronal guardada !!.\n");
         }
 
         static void Load_and_predict(string filepath)
@@ -58,6 +60,7 @@ namespace nn
             };
 
             var snn = SimpleNeuralNetwork.Load(filepath);
+            Console.WriteLine("Red Neuronal cargada !!.\n");
 
             // predict
             Console.WriteLine("\nPredicciones:\n");
@@ -75,8 +78,6 @@ namespace nn
 
             Train_predict_and_save("xor.json");
             Load_and_predict("xor.json");
-            Console.ReadKey();
-
         }
     }
 }
